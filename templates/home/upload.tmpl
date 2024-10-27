@@ -1,10 +1,27 @@
 {{ define "home/upload.tmpl" }}
     {{ template "globals/header.tmpl" .}}
 
-    <h1>{{ .title }}</h1>
+    <h3>
+    Proceeding with import of {{ .filename }}  ....
+    </h3>
 
-    File {{ .filename }} uploaded successfully
+    <div class='event-data'
+        style="height:100px;
+        width:55%;
+        overflow:hidden;
+        cursor:pointer">
+    </div>
+        
+    <script src="https://code.jquery.com/jquery-1.11.1.js"></script>
+    <script>
+        // EventSource object of javascript listens the streaming events from our go server and prints the message.
+        var stream = new EventSource("/stream");
+        stream.addEventListener("message", function(e){
+            $('.event-data').append(e.data + "</br>")
+        });
+    </script>
 
+    <p>
     <div>
     <form action="/fileinfo" method="post" enctype="multipart/form-data">
         <input type="submit" class='rounded-box' value="Next">
