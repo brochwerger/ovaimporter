@@ -1,13 +1,12 @@
- {{ define "home/index.tmpl" }}
+ {{ define "home/ocpinfo.tmpl" }}
  	{{ template "globals/header.tmpl" .}}
+	  <h1>{{ .title }}</h1>
 	  <div>
-		<form action="/upload" method="post" enctype="multipart/form-data">
+		<form action="/fileinfo" method="post" enctype="multipart/form-data">
 			OCP Token: <input type="string" class='rounded-box' name="token"> 
 			<p>
 			OCP Namespace: <input type="string" class='rounded-box' name="namespace"> 
-			<p>
-			OVA File: <input type="file" class='rounded-box' name="file"> 
-			<input type="submit" class='rounded-box' value="Upload">
+			<input type="submit" class='rounded-box' value="Continue">
 		</form>
 	  </div>
 	{{ template "globals/footer.tmpl" .}}
