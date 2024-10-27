@@ -10,7 +10,6 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
-	// "sync"
 	// "time"
 
 	"github.com/antchfx/xmlquery"
@@ -26,13 +25,12 @@ type  HWRequirements struct {
 
 const DATADIR = "/data/"
 
-// var messages chan string 
-// var wg sync.WaitGroup
+var messages chan string 
 
 func main() {
 
-	// messages = make(chan string)
-	// defer close(messages)
+	messages = make(chan string)
+	defer close(messages)
 
 	r := gin.Default()
 
@@ -58,29 +56,26 @@ func main() {
 
 		file, err := c.FormFile("file")
 		if err != nil {
-			c.String(http.StatusBadRequest, "get form err: %s", err.Error())
+			// cCp.String(http.StatusBadRequest, "get form err: %s", err.Error())
+			report("ERROR: " + err.Error())
 			return
 		}
 
 		filename := filepath.Base(file.Filename)
+		fullname := DATADIR + filename
 
-		c.HTML(http.StatusOK, "home/upload.tmpl", gin.H{"filename": filename,})
+		if err := c.SaveUploadedFile(file, fullname); err != nil {
+			// cCp.String(http.StatusBadRequest, "upload file err: %s", err.Error())
+			report("ERROR: " + err.Error())
+			return
+		}
+		// report(fmt.Sprintf("Uploaded OVA %s", filename))
 
-		// wg.Add(1)
-		// go func(file *multipart.FileHeader) {
-
-			fullname := DATADIR + filepath.Base(file.Filename)
-
-			if err := c.SaveUploadedFile(file, fullname); err != nil {
-				// c.String(http.StatusBadRequest, "upload file err: %s", err.Error())
-				report("ERROR: " + err.Error())
-				return
-			}
-			report(fmt.Sprintf("Uploaded OVA %s", filename))
+		go func() {
 
 			err = untar(fullname, DATADIR)
 			if err != nil {
-				// c.String(http.StatusBadRequest, "untar file err: %s", err.Error())
+				// cCp.String(http.StatusBadRequest, "untar file err: %s", err.Error())
 				report("ERROR: " + err.Error())
 				return
 			}
@@ -89,49 +84,48 @@ func main() {
 			var hwreqs HWRequirements
 			err = extractHwRequirements(DATADIR, &hwreqs)
 			if err != nil {
-				// c.String(http.StatusBadRequest, "extract hw info err: %s", err.Error())
+				// cCp.String(http.StatusBadRequest, "extract hw info err: %s", err.Error())
 				report("ERROR: " + err.Error())
 				return
 			}
 			report(fmt.Sprintf("Extracted HW info:\n\tDisk size: %v\n\tNumber of vCPUS: %v\n\tMemory Size: %v\n\tOperation System: %v",
 				hwreqs.diskSize, hwreqs.numberOfVCpus, hwreqs.memorySize, hwreqs.operatingSystem))
 
-			// wg.Done()
+		}()
 
-		// }(file)
-		// wg.Wait()
+		c.HTML(http.StatusOK, "home/upload.tmpl", gin.H{"filename": filename,})
 
 	})
 
-	// // Add event-streaming headers
-	// r.GET("/stream", HeadersMiddleware(), func(c *gin.Context) {
-	// 	c.Stream(func(w io.Writer) bool {
-	// 		// Stream message to client from message channel
-	// 		// if msg, ok := <-ClientChan; ok {
-	// 		for msg := range messages {
-	// 			c.SSEvent("message", msg)
-	// 			return true
-	// 		}
-	// 		return false
-	// 	})
-	// })
+	// Add event-streaming headers
+	r.GET("/stream", HeadersMiddleware(), func(c *gin.Context) {
+		c.Stream(func(w io.Writer) bool {
+			// Stream message to client from message channel
+			// if msg, ok := <-ClientChan; ok {
+			for msg := range messages {
+				c.SSEvent("message", msg)
+				return true
+			}
+			return false
+		})
+	})
 	
 	r.Run() // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
 }
 
-// func HeadersMiddleware() gin.HandlerFunc {
-// 	return func(c *gin.Context) {
-// 		c.Writer.Header().Set("Content-Type", "text/event-stream")
-// 		c.Writer.Header().Set("Cache-Control", "no-cache")
-// 		c.Writer.Header().Set("Connection", "keep-alive")
-// 		c.Writer.Header().Set("Transfer-Encoding", "chunked")
-// 		c.Next()
-// 	}
-// }
+func HeadersMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		c.Writer.Header().Set("Content-Type", "text/event-stream")
+		c.Writer.Header().Set("Cache-Control", "no-cache")
+		c.Writer.Header().Set("Connection", "keep-alive")
+		c.Writer.Header().Set("Transfer-Encoding", "chunked")
+		c.Next()
+	}
+}
 
 func report(msg string) {
 	log.Println(msg)
-	// messages <- msg
+	messages <- msg
 }
 
 func untar(tarball, target string) error {

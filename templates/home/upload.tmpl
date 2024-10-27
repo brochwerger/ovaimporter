@@ -2,12 +2,16 @@
     {{ template "globals/header.tmpl" .}}
 
     <h3>
-    Proceeding with import of {{ .filename }}  ....
+    Upload successfull !!! 
     </h3>
 
+    <h4>
+    Continue proceesing {{ .filename }}  ...
+    </h4>
+
     <div class='event-data'
-        style="height:100px;
-        width:55%;
+        style="height:300px;overflow-y:scroll;
+        width:100%;
         overflow:hidden;
         cursor:pointer">
     </div>
@@ -24,7 +28,7 @@
     <p>
     <div>
     <form action="/fileinfo" method="post" enctype="multipart/form-data">
-        <input type="submit" class='rounded-box' value="Next">
+        <input type="submit" class='rounded-box' value="Done">
     </form>
     </div>
 
