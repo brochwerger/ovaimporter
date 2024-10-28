@@ -5,15 +5,19 @@ import (
 	"fmt"
 	"io"
 	"log"
+
 	// "mime/multipart"
 	"net/http"
 	"os"
 	"path/filepath"
 	"strconv"
+	"sync"
+
 	// "time"
 
 	"github.com/antchfx/xmlquery"
 	"github.com/gin-gonic/gin"
+
 )
 
 type  HWRequirements struct {
@@ -26,11 +30,13 @@ type  HWRequirements struct {
 const DATADIR = "/data/"
 
 var messages chan string 
+var wg sync.WaitGroup
 
 func main() {
 
 	messages = make(chan string)
 	defer close(messages)
+	wg.Add(1)
 
 	r := gin.Default()
 
@@ -73,6 +79,8 @@ func main() {
 
 		go func() {
 
+			wg.Wait()
+
 			err = untar(fullname, DATADIR)
 			if err != nil {
 				// cCp.String(http.StatusBadRequest, "untar file err: %s", err.Error())
@@ -89,11 +97,16 @@ func main() {
 				return
 			}
 			report(fmt.Sprintf("Extracted HW info:\n\tDisk size: %v\n\tNumber of vCPUS: %v\n\tMemory Size: %v\n\tOperation System: %v",
-				hwreqs.diskSize, hwreqs.numberOfVCpus, hwreqs.memorySize, hwreqs.operatingSystem))
+				hwreqs.diskSize, 
+				hwreqs.numberOfVCpus, 
+				hwreqs.memorySize, 
+				hwreqs.operatingSystem,
+			))
 
 		}()
 
 		c.HTML(http.StatusOK, "home/upload.tmpl", gin.H{"filename": filename,})
+		wg.Done()
 
 	})
 
