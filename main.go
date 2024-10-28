@@ -4,16 +4,17 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"strings"
+
 	// "mime/multipart"
 	"net/http"
 	"path/filepath"
 	"sync"
+
 	// "time"
 
 	"github.com/gin-gonic/gin"
-
 	// "github.com/brochwerger/ovaimport/internal"
-
 )
 
 type  HWRequirements struct {
@@ -32,7 +33,6 @@ func main() {
 
 	messages = make(chan string)
 	defer close(messages)
-	wg.Add(1)
 
 	r := gin.Default()
 
@@ -73,6 +73,7 @@ func main() {
 		}
 		// report(fmt.Sprintf("Uploaded OVA %s", filename))
 
+		wg.Add(1)
 		go func() {
 
 			wg.Wait()
@@ -134,7 +135,7 @@ func HeadersMiddleware() gin.HandlerFunc {
 
 func report(msg string) {
 	log.Println(msg)
-	messages <- msg
+	messages <- strings.Replace(msg, "\n\t", "<br>", -1)
 }
 
 // func untar(tarball, target string) error {
