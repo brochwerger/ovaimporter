@@ -12,7 +12,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"github.com/brochwerger/ovaimport/internal"
+	// "github.com/brochwerger/ovaimport/internal"
 
 )
 
@@ -77,7 +77,7 @@ func main() {
 
 			wg.Wait()
 
-			err = funcs.Untar(fullname, DATADIR)
+			err = Untar(fullname, DATADIR)
 			if err != nil {
 				// cCp.String(http.StatusBadRequest, "untar file err: %s", err.Error())
 				report("ERROR: " + err.Error())
@@ -86,7 +86,7 @@ func main() {
 			report(fmt.Sprintf("Extracted files from %s", filename))
 
 			var hwreqs HWRequirements
-			err = funcs.ExtractHwRequirements(DATADIR, &hwreqs)
+			err = ExtractHwRequirements(DATADIR, &hwreqs)
 			if err != nil {
 				// cCp.String(http.StatusBadRequest, "extract hw info err: %s", err.Error())
 				report("ERROR: " + err.Error())

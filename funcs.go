@@ -1,7 +1,9 @@
-package internal
+package main
 
 import (
 	"os"
+	"io"
+	"fmt"
 	"archive/tar"
 	"path/filepath"
 	"strconv"
