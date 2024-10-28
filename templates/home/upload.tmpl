@@ -2,15 +2,13 @@
     {{ template "globals/header.tmpl" .}}
 
     <h3>
-    Upload successfull !!! 
+    Successfully uploaded {{ .filename }} 
     </h3>
 
-    <h4>
-    Continue proceesing {{ .filename }}  ...
-    </h4>
-
     <div class='event-data'
-        style="height:300px;overflow-y:scroll;
+        style="height:200px;overflow-y:scroll;
+        border: 5px outset red;
+        background-color: lightgray;    
         width:100%;
         overflow:hidden;
         cursor:pointer">
