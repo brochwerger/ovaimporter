@@ -43,14 +43,22 @@ func main() {
 
 	//show home
 	r.GET("/", func(c *gin.Context) {
-		c.HTML(http.StatusOK, "home/ocpinfo.tmpl", gin.H{
-			"title":    "OCP-V data",
+	//** <Running in-cluster --> no need to access for cluster details>
+	// 	c.HTML(http.StatusOK, "home/ocpinfo.tmpl", gin.H{
+	// 		"title":    "OCP-V data",
+	// 	})
+	// })
+
+	// r.POST("/fileinfo", func(c *gin.Context) {
+	//** </Running in-cluster>
+		c.HTML(http.StatusOK, "home/fileinfo.tmpl", gin.H{
+			"title":    "Select OVA source",
 		})
 	})
 
 	r.POST("/fileinfo", func(c *gin.Context) {
 		c.HTML(http.StatusOK, "home/fileinfo.tmpl", gin.H{
-			"title":    "OVA data",
+			"title":    "Select OVA source",
 		})
 	})
 
@@ -99,6 +107,12 @@ func main() {
 				hwreqs.memorySize, 
 				hwreqs.operatingSystem,
 			))
+
+			err = CreateResources()
+			if err != nil {
+				report("ERROR:" + err.Error())
+			}
+			
 
 		}()
 
