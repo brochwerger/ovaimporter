@@ -7,8 +7,18 @@ import (
 	"archive/tar"
 	"path/filepath"
 	"strconv"
-	
+	// "context"
+	"os/exec"
+	// "fmt"
+	// "time"
+	"strings"
+
 	"github.com/antchfx/xmlquery"
+
+	// // "k8s.io/apimachinery/pkg/api/errors"
+	// metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	// "k8s.io/client-go/kubernetes"
+	// "k8s.io/client-go/rest"
 )
 
 func Untar(tarball, target string) error {
@@ -96,7 +106,7 @@ func ExtractHwRequirements(dirname string, hwreqs *HWRequirements) error {
 		// fmt.Println("Disk Capacity:", node.SelectAttr("ovf:capacity"))
 		// fmt.Println("Allocation Unit:", node.SelectAttr("ovf:capacityAllocationUnits"))
 	} else {
-		err := fmt.Errorf("Key not found: %s", expr)
+		err := fmt.Errorf("key not found: %s", expr)
 		return err
 	}
 
@@ -106,7 +116,7 @@ func ExtractHwRequirements(dirname string, hwreqs *HWRequirements) error {
 		hwreqs.operatingSystem = node.FirstChild.Data
 		// fmt.Println("Operating System:", node.FirstChild.Data) //.SelectAttr("ovf:capacity"))
 	} else {
-		err := fmt.Errorf("Key not found: %s", expr)
+		err := fmt.Errorf("key not found: %s", expr)
 		return err
 	}
 
@@ -116,7 +126,7 @@ func ExtractHwRequirements(dirname string, hwreqs *HWRequirements) error {
 		hwreqs.numberOfVCpus, _ = strconv.Atoi(node.FirstChild.Data)
 		// fmt.Println("Number of vCPUs:", node.FirstChild.Data)
 	} else {
-		err := fmt.Errorf("Key not found: %s", expr)
+		err := fmt.Errorf("key not found: %s", expr)
 		return err
 	}
 
@@ -126,10 +136,100 @@ func ExtractHwRequirements(dirname string, hwreqs *HWRequirements) error {
 		hwreqs.memorySize, _ = strconv.Atoi(node.FirstChild.Data)
 		// fmt.Println("Memory Size:", node.FirstChild.Data)
 	} else {
-		err := fmt.Errorf("Key not found: %s", expr)
+		err := fmt.Errorf("key not found: %s", expr)
 		return err
 	}
 
 	return nil
 
+}
+
+func ConverVMDK(dirname string) (string, error) {
+
+	dir, err := os.Open(dirname)
+	if err != nil {
+		return "", err
+	}
+	defer dir.Close()
+
+	files, err := dir.Readdir(-1)
+	if err != nil {
+		return "", err
+	}
+ 
+	var filename, vmdkname, qcow2name string
+	found := 0
+	for _, file := range files {
+		filename = file.Name()
+	   	if filepath.Ext(filename) == ".ova" {
+			qcow2name = strings.Replace(filename, filepath.Ext(filename), ".qcow2", 1)
+			found++
+	   	}
+	   	if filepath.Ext(filename) == ".vmdk" {
+			vmdkname = filename
+			found++
+		}
+		if found == 2 {
+			break
+		}
+	}
+
+	if found != 2 {
+		return "", fmt.Errorf("ERROR: VMDK file not found")
+	}
+
+	cmd := exec.Command("qemu-img", "convert", "-cpf", "vmdk", "-O", "qcow2", 
+		dirname + "/" + vmdkname, 
+		dirname + "/" + qcow2name)
+
+	err = cmd.Run()
+	if err != nil {
+		return "", err
+	}
+	// running := make(chan bool)
+	// go func (running chan bool) {
+		
+	// 	for {
+	// 		select {
+	// 		case <-running :
+	// 			fmt.Println("")
+	// 			return
+	// 		default:
+	// 			time.Sleep(time.Second)
+	// 			fmt.Print(".")
+	// 		}
+	// 	}	  
+
+	// } (running)
+	// err = cmd.Start()
+	// if err == nil {
+	// 	cmd.Wait()
+	// }
+	// running <- false
+	return qcow2name, nil
+
+}
+
+func CreateResources() error {
+	return nil
+	// // creates the in-cluster config
+	// config, err := rest.InClusterConfig()
+	// if err != nil {
+	// 	panic(err.Error())
+	// }
+	// // creates the clientset
+	// clientset, err := kubernetes.NewForConfig(config)
+	// if err != nil {
+	// 	panic(err.Error())
+	// }
+	// for {
+	// 	// get pods in all the namespaces by omitting namespace
+	// 	// Or specify namespace to get pods in particular namespace
+	// 	pods, err := clientset.CoreV1().Pods("").List(context.TODO(), metav1.ListOptions{})
+	// 	if err != nil {
+	// 		panic(err.Error())
+	// 	}
+	// 	fmt.Printf("There are %d pods in the cluster\n", len(pods.Items))
+	// }
+	// return err
 }

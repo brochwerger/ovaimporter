@@ -14,7 +14,7 @@ import (
 	// "time"
 
 	"github.com/gin-gonic/gin"
-	// "github.com/brochwerger/ovaimport/internal"
+
 )
 
 type  HWRequirements struct {
@@ -25,6 +25,7 @@ type  HWRequirements struct {
 }
 
 const DATADIR = "/data/"
+// const DATADIR = "./"
 
 var messages chan string 
 var wg sync.WaitGroup
@@ -107,6 +108,14 @@ func main() {
 				hwreqs.memorySize, 
 				hwreqs.operatingSystem,
 			))
+
+			report("Converting vmdk to qcow2 ...")
+			var qcow2file string
+			qcow2file, err = ConverVMDK(DATADIR)
+			if err != nil {
+				report("ERROR:" + err.Error())
+			}
+			report("Creating data volume for " + qcow2file)
 
 			err = CreateResources()
 			if err != nil {
