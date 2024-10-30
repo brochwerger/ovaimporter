@@ -1,0 +1,67 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: ovaimporter
+  name: ovaimporter
+
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ovaimporter
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: ovaimporter
+    spec:
+      containers:
+      - image: quay.io/brochwer/ovaimporter:latest
+        name: ovaimporter
+
+        ports:
+        - containerPort: 8080
+
+        volumeMounts:
+        - name: persistent-storage
+          mountPath: /data
+
+      volumes:
+      - name: persistent-storage
+        persistentVolumeClaim:
+          claimName: ovaimporter-pvc
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: ovaimporter-pvc
+  labels:
+    app: ovaimporter
+
+spec:
+  # storageClassName: manual
+  accessModes:
+   - ReadWriteOnce
+  resources:
+   requests:
+    storage: 3Gi
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ovaimporter
+  labels:
+    app: ovaimporter
+spec:
+
+  ports:
+  - port: 8080
+  selector:
+    app: ovaimporter
+
+  type: LoadBalancer
