@@ -9,12 +9,15 @@ RUN go mod init github.com/brochwerger/ovaimporter
 RUN go mod tidy
 RUN go build -o ovaimporter .
 
-# ENTRYPOINT ["/app/ovaimporter"]
+RUN apk add qemu-img
 
-FROM scratch
-WORKDIR /tmp
-COPY --from=build /app/ovaimporter /bin/ovaimporter
-COPY --from=build /app/templates /app/templates
+ENTRYPOINT ["/app/ovaimporter"]
 
-WORKDIR /app/
-ENTRYPOINT ["/bin/ovaimporter"]
+# FROM scratch
+# WORKDIR /tmp
+# # WORKDIR /data
+# COPY --from=build /app/ovaimporter /bin/ovaimporter
+# COPY --from=build /app/templates /app/templates
+
+# WORKDIR /app/
+# ENTRYPOINT ["/bin/ovaimporter"]
