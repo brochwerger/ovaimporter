@@ -1,0 +1,130 @@
+#! /bin/bash
+
+############################################################
+# Usage
+############################################################
+Usage()
+{
+   # Display Help
+   echo "Usage: ova2bootvolume -u <URL>" #|-f <filename> [-n <bootable volume name>]" 
+   echo
+   echo "Options:"
+   echo "-h         Print this Help."
+   echo "-u <URL>   Download OVA from <URL>"
+   echo "-d <directory>  Use OVA in <directory>"
+#   echo "-n <name>      [optional] Use <name> for bootable volume, if not present then derive name from OVA name"
+   echo
+   exit
+}
+
+############################################################
+# Prompt
+############################################################
+function Prompt() {
+    echo ""
+    echo "=================================================="
+    echo -e "$PRMPT_COLOR$1$RESET_COLOR"
+    echo ""
+    while true 
+    do 
+        echo ${2:-"Proceed"} "[Yes|Abort|Skip]?"
+        read PROCEED
+        if [[ $PROCEED = "A" || $PROCEED == "a" ]] # Abort
+        then
+            echo "Aborting ..."
+            exit
+        elif [[ $PROCEED = "S" || $PROCEED == "s" ]] # Skip to next step
+        then 
+            return -1
+        elif [[ $PROCEED = "Y" || $PROCEED == "y" ]] # Proceed with step
+        then 
+            return 0
+        fi
+    done
+}
+
+############################################################
+# Main program
+############################################################
+
+# Get the options
+while getopts ":hu:d:n:" option; do
+   case $option in
+      h) Usage;;
+      d) DIR=$OPTARG;;
+      u) URL=$OPTARG;;
+     \?) # Invalid option
+         echo "Error: Invalid option"
+         Usage;;
+   esac
+done
+
+if [[ -z $URL && -z $DIR ]]
+then
+    Usage
+elif [[ -n $URL ]]
+then
+    # Set vars from URL 
+    OVA_FULL_NAME=$(basename $URL)
+    OVA_SHORT_NAME=$(basename -s".ova" $OVA_FULL_NAME)
+
+    if Prompt "Download OVA from $URL and extracts files in it ?"
+    then 
+        mkdir $OVA_SHORT_NAME
+        cd $OVA_SHORT_NAME
+        wget $URL
+        tar xvf $OVA_FULL_NAME
+    fi
+
+else 
+    OVA_SHORT_NAME=$(basename $DIR)
+    OVA_FULL_NAME=$OVA_SHORT_NAME.ova
+
+    if Prompt "Extracts files from OVA in $DIR ?"
+    then 
+        cd $OVA_SHORT_NAME
+        tar xvf $OVA_FULL_NAME
+    fi
+
+fi
+
+QCOW2_NAME=$OVA_SHORT_NAME.qcow2
+
+if Prompt "Convert vmdk file to qcow2 ?"
+then
+    if [[ $(basename $PWD) != $OVA_SHORT_NAME ]]
+    then
+        cd $OVA_SHORT_NAME
+    fi
+    for f in *.vmdk ; do 
+        VMDK_NAME=$(echo $f)
+        break
+    done
+    qemu-img convert -cpf vmdk -O qcow2 $VMDK_NAME $QCOW2_NAME
+fi
+
+if Prompt "Upload qcow2 file to data volume ?"
+then
+    if [[ $(basename $PWD) != $OVA_SHORT_NAME ]]
+    then
+        cd $OVA_SHORT_NAME
+    fi
+    # # Figure out the disk size from metadata in OVF
+    OVF_NAME=$(ls -1 *.ovf)
+    disksize=$(awk -F'"' '/Disk ovf:capacity/ {print $2}' $OVF_NAME)"Gi"
+    virtctl image-upload dv $OVA_SHORT_NAME --force-bind  --insecure --size=$disksize --image-path=$QCOW2_NAME
+fi
+
+if Prompt "Create data source (bootable volume) from data volume ?"
+then
+    if [[ $(basename $PWD) != $OVA_SHORT_NAME ]]
+    then
+        cd $OVA_SHORT_NAME
+    fi
+    # Create a data source resource 
+    cp ../datasource-template.yaml $OVA_SHORT_NAME.yaml
+    sed -i 's/#NAME#/'"$OVA_SHORT_NAME"'/' $OVA_SHORT_NAME.yaml
+    NAMESPACE=$(kubectl config view --minify --output 'jsonpath={..namespace}')
+    sed -i 's/#NAMESPACE#/'"$NAMESPACE"'/' $OVA_SHORT_NAME.yaml
+    oc apply -f $OVA_SHORT_NAME.yaml
+fi
