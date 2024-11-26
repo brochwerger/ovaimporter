@@ -1,0 +1,4 @@
+# Scripts to import OVAs into OCP-V
+
+. link:cli/README.adoc[command line OVA import utility]
+. link:webui/README.adoc[web-based application] to fully automate the OVA import process

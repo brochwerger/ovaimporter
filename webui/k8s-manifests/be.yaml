@@ -1,0 +1,46 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: ovaimporter-be
+  name: ovaimporter-be
+spec:
+  ports:
+  - name: "8000"
+    port: 8000
+    targetPort: 8000
+  selector:
+    app: ovaimporter-be
+  # type: NodePort
+
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  annotations:
+    bind-mount-options: /tmp/ovas:Z
+  creationTimestamp: "2024-11-07T15:57:56Z"
+  labels:
+    app: ovaimporter-be
+  name: ovaimporter-be
+spec:
+  containers:
+  - args:
+    - reflex
+    - run
+    - --backend-only
+    image: quay.io/brochwer/ovaimporter:latest
+    name: ovaimporter-be
+    ports:
+    - containerPort: 8000
+    securityContext: {}
+    volumeMounts:
+    - mountPath: /tmp/ovas
+      name: scratch
+
+  volumes:
+  - name: scratch
+    persistentVolumeClaim:
+      claimName: ovaimporter-volume
+    

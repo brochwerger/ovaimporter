@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ovaimporter-params
+
+data:
+  API_URL: http://ovaimporter-be-ova-import-demo.apps.cnv2.engineering.redhat.com
