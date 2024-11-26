@@ -10,6 +10,7 @@ DRY_RUN = False
 
 spec = {}
 
+# TODO: Fix decorator such that DRY_RUN works (prints command but do not execute)
 def command(func):
     return func
     # def inner(*args, **kwargs):
@@ -143,16 +144,15 @@ def createBootVolume(dir:str, file:str):
 
 @command
 def cleanup(dir: str, file: str):
-    # print("Removing temporary files in {} ... ".format(dir))
-    # try:
-    #     with os.scandir(dir) as entries:
-    #         for entry in entries:
-    #             if entry.is_file():
-    #                 os.unlink(entry.path)
-    # except Exception as e:
-    #     print(e)
-    #     return -1
-    # # subprocess.run(["clear"])
+    print("Removing temporary files in {} ... ".format(dir))
+    try:
+        with os.scandir(dir) as entries:
+            for entry in entries:
+                if entry.is_file():
+                    os.unlink(entry.path)
+    except Exception as e:
+        print(e)
+        return -1
     print("Finished importing {}".format(file))
     return True
 
