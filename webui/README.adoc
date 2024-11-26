@@ -1,0 +1,22 @@
+# Web based OVA Importing tool
+
+Created with https://reflex.dev/
+
+To run direcly:
+
+[source, bash]
+----
+python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt 
+reflex run
+----
+
+To run in a container, after building the container image with the provided `Containerfile`, you need to set the `API_URL` enviroment variable, and expose both frontend (3000) and backend (8000) ports as follow:
+
+[source, bash]
+----
+podman run -d -p 3000:3000 -p 8000:8000 -e API_URL=http://<address-of-host>:8000 -v <some-temporary-directory>:/tmp/ovas --name ovaimporter ovaimporter:latest
+----
+
+Manifests file to deploy in an OCP cluster, are provided under `k8s-manifests`. In current implementation, the disk capacity in the PVC should be about 3 times the size of the largest OVA expected so it can hold the OVA, the original VMDK and the resulting QCOW2 files.  OCP routes are used to point to the backend, if a different mechanism is used you will need to set the `API_URL` in `configmap.yaml` accordingly
