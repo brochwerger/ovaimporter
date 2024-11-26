@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: ovaimporter-volume
+spec:
+  accessModes:
+   - ReadWriteMany
+  resources:
+   requests:
+    storage: 100Gi
+

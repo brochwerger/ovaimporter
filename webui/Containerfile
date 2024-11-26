@@ -1,0 +1,51 @@
+FROM registry.access.redhat.com/ubi9/python-312
+
+USER root
+RUN set
+ENV root_path /
+
+ENV VERSION=latest-4.16 \
+    ARCHIVE=openshift-client-linux \
+    OKD_DOWNLOAD_BASE_URL="https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/ocp"
+
+RUN dnf update -y --disableplugin=subscription-manager
+RUN dnf install -y unzip nodejs pip wget
+
+# Install oc 
+RUN set -x && \
+    URL="${OKD_DOWNLOAD_BASE_URL}/${VERSION}/${ARCHIVE}.tar.gz" && \
+    cd /tmp && \
+    curl -sSL "$URL" -o /tmp/oc.tgz && \
+    tar -xzvf /tmp/oc.tgz && \
+    mv -v "/tmp/oc" /bin/
+
+# Install qemu-img
+RUN SMDEV_CONTAINER_OFF=1 subscription-manager register --org=11009103 --activationkey=container_builds && \
+    yum install -y qemu-img && \
+    SMDEV_CONTAINER_OFF=1 subscription-manager unregister && \
+    yum clean all && \
+    echo -e '[main]\nenabled=0' >  /etc/yum/pluginconf.d/subscription-manager.conf    
+ 
+# Install virtctl 
+RUN export VERSION=$(curl https://storage.googleapis.com/kubevirt-prow/release/kubevirt/kubevirt/stable.txt) && \
+    wget https://github.com/kubevirt/kubevirt/releases/download/${VERSION}/virtctl-${VERSION}-linux-amd64 && \
+    mv virtctl-${VERSION}-linux-amd64 /bin/virtctl && \
+    chmod a+x /bin/virtctl
+
+# # Python deps
+WORKDIR /opt/app
+COPY ./requirements.txt .
+RUN pip install -r requirements.txt
+
+# Copy codebase
+COPY . .
+RUN reflex init
+
+RUN chmod -R a+w .
+
+# Set interface-
+EXPOSE 3000
+EXPOSE 8000
+
+# default run
+CMD ["reflex", "run", "--env", "prod"]
