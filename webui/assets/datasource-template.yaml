@@ -6,9 +6,9 @@ metadata:
     instancetype.kubevirt.io/default-instancetype: u1.large
     instancetype.kubevirt.io/default-preference: ubuntu
   name: #NAME#
-  namespace: ova-import-demo
+  namespace: #NAMESPACE#
 spec:
   source:
     pvc:
       name: #NAME#
-      namespace: ova-import-demo
+      namespace: #NAMESPACE#
