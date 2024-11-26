@@ -1,0 +1,14 @@
+apiVersion: cdi.kubevirt.io/v1beta1
+kind: DataSource
+metadata:
+  generation: 4
+  labels:
+    instancetype.kubevirt.io/default-instancetype: u1.large
+    instancetype.kubevirt.io/default-preference: ubuntu
+  name: #NAME#
+  namespace: #NAMESPACE#
+spec:
+  source:
+    pvc:
+      name: #NAME#
+      namespace: #NAMESPACE#
