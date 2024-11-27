@@ -52,3 +52,20 @@ image::assets/screenshots/ova-from-file.png[Get OVA from file,50%]
 .Status/Progress page
 [#img-ova-from-url, caption="Figure 4: ",]
 image::assets/screenshots/progress.png[Get OVA from URL,75%]
+
+.Disclaimer
+
+****
+
+Red Hat does not provide commercial support for the content of this repo
+
+----
+#############################################################################
+DISCLAIMER: THE CONTENT OF THIS REPO IS EXPERIMENTAL AND PROVIDED **"AS-IS"**
+
+THE CONTENT IS PROVIDED AS REFERENCE WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+#############################################################################
+----
+****
