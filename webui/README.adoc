@@ -28,7 +28,7 @@ Once deployed you open the application's URL in your browser (the URL depends on
 
 .OCP login page
 [#img-ocplogin, caption="Figure 1: ",]
-image::assets/screenshots/ocp-login.png[OCP login page,50%]
+image::../screenshots/fig5-ocp-login.png[OCP login page,50%]
 
 . Enter in this field the full URL to your OCP's console
 . Your API token. To generate a token use the 'Copy login command' in the OCP console under your username (top right corner)
@@ -43,15 +43,15 @@ In both cases, after the OVA has been uploaded/downloaded into the temporary sto
 
 .Get OVA from URL
 [#img-ova-from-url, caption="Figure 2: ",]
-image::assets/screenshots/ova-from-url.png[Get OVA from URL,50%]
+image::../screenshots/fig6-ova-from-url.png[Get OVA from URL,50%]
 
 .Get OVA from URL
 [#img-ova-from-url, caption="Figure 3: ",]
-image::assets/screenshots/ova-from-file.png[Get OVA from file,50%]
+image::../screenshots/fig7-ova-from-file.png[Get OVA from file,50%]
 
 .Status/Progress page
 [#img-ova-from-url, caption="Figure 4: ",]
-image::assets/screenshots/progress.png[Get OVA from URL,75%]
+image::../screenshots/fig8-progress.png[Get OVA from URL,75%]
 
 .Disclaimer
 
